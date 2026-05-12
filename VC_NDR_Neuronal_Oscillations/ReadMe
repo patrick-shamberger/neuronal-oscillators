@@ -1,0 +1,49 @@
+This repository contains MATLAB code for simulating Voltage-controlled electro-thermal neuron materials (with  positive temperature coefficient of resistivity),
+including both steady-state electrical behavior and time-dependent nonlinear oscillations, using temperature-dependent material properties (electrical conductivity, thermal conductivity, and heat capacity).
+The framework combines physics-based material models with numerical integration to study neuron-like spiking dynamics.
+The compact model was originally developed by T.D. Brown and modified by F. Jardali at TAMU.
+
+# Overview
+The code implements a two-stage simulation workflow:
+1.	Steady-state Analysis
+-	Computes steady state I-V characteristics
+
+2.	Dynamic Simulations
+-	Solves coupled nonlinear differential equations governing thermal and electrical dynamics
+-	Generates time-domain T and I oscillations
+-	Extracts neuronal performance metrics such as frequency, current and temperature extrema
+
+# File structure
+	# Main Script
+-	main.m -------- entry point for all simulations. Defines simulation settings, material selection, and control parameters.
+
+	# Core Solver
+-	derivfunc.m --------- Defines the system of differential equations.
+-	RK4Nsolver.m --------- General-puprose Runge-Kutta 4th order solver for N-dimensional nonlinear systems.
+
+	# Material Modeling 
+-	modelfitter.m ------ Fits analytical models to experimental data
+		- Electrical conductivity --- The fit is embedded directly in the code following equations in Alexandrov et al. PRL 96, 117003 (2006)
+		- Thermal conductivity --- Fit Piecewise Laurent with single-phase or two-phase model with sigmoid interpolant (PiecewiseLaurent.m)
+		- Heat capacity --- Fit Debye model with first-order phase transition (DebyewithFOPT.m)
+-	electrothermalmodels.m ---- Computes electrical conductance, thermal conductance, thermal capacitance using the defined device dimensions in main.
+
+# Using Custom Material Properties
+- The code is designed to be material-agnostic. Users can incorporate their own material systems and predict steady-state and oscillatory behavior by providing temperature-dependent properties (electrical conductivity, thermal conductivity, and heat capacity).
+- Datasets should be formatted .xlsx files with columns [Temperature (K), Property value (SI units)].
+- Place your data files in the working directory (or the designated Material properties/ folder).
+- In main_NeuronalMaterialsSimulations.m, materials are selected using an integer flag (using “material_select = XX” function.
+- To add a new material: 
+	- Define a new case in the material selection section (bottom) of the main script.
+	- Assign your fitted parameters (see detailed comments in modelfitter.m on how to chose the parameters).
+	- Set the corresponding flag value.
+	Example: 
+		case 35 % VO2 
+		trange = linspace(300, 1000, 5000); % temperature range used for fitting properties
+		name = 'VO2'; % name of material
+		tcondfile = 'VO2TCond.xlsx'; econdfile = 'VO2ECond'; tcapfile = 'VO2Cth'; % name of material property files (include path if not placed in same directory) 
+		emodelopts = [1,0.2,0.9]; tmodelopts = [1, 0.3, 0.8]; tcapmodelopts = [1,0.5,0.7];% model fitting parameters (refer to modelfitter.m for more details)
+    
+# Citation
+If you use this code in your research, please cite the following work:
+F.Jardali, G. Svatek, R. S. Williams, T. D.Brown, and P. J.Shamberger, Material-Driven Neuronal Oscillators and Filters via Active Reactance in CC-NDR and VC-NDR Electro-Thermal Memristors, Advanced Physics Research
