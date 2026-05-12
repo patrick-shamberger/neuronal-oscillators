@@ -1,0 +1,50 @@
+This repository contains MATLAB code for simulating electro-thermal neuron materials, including both steady-state electrical behavior and time-dependent nonlinear oscillations, using temperature-dependent material properties (electrical conductivity, thermal conductivity, and heat capacity).
+The framework combines physics-based material models with numerical integration to study neuron-like spiking dynamics.
+The compact model was originally developed by T.D. Brown at Sandia National Labs, CA, and the material database was constructed by F. Jardali, J. Chong, Y. Yu, and P. Shamberger at Texas A&M University.
+
+# Overview
+The code implements a two-stage simulation workflow:
+1.	Steady-state Analysis
+-	Computes steady state I-V characteristics
+-	Identifies the operating (bias) point 
+-	Computes the critical capacitance and maximum oscillation frequency
+
+2.	Dynamic Simulations
+-	Solves coupled nonlinear differential equations governing thermal and electrical dynamics
+-	Generates time-domain T and V oscillations
+-	Extracts neuronal performance metrics such as frequency, voltage and temperature extrema
+
+# File structure
+	# Main Script
+-	main_NeuronalMaterialsSimulations.m -------- entry point for all simulations. Defines simulation settings, material selection, and control parameters.
+
+	# Core Solver
+-	derivfunc.m --------- Defines the system of differential equations.
+-	RK4Nsolver.m --------- General-puprose Runge-Kutta 4th order solver for N-dimensional nonlinear systems.
+
+	# Material Modeling 
+-	modelfitter.m ------ Fits analytical models to experimental data
+		- Electrical conductivity --- Fit Piecewise Arrhenian with single-phase or two-phase model with sigmoid interpolant (PiecewiseArrhenian.m)
+		- Thermal conductivity --- Fit Piecewise Laurent with single-phase or two-phase model with sigmoid interpolant (PiecewiseLaurent.m)
+		- Heat capacity --- Fit Debye model with first-order phase transition (DebyewithFOPT.m)
+-	electrothermalconductance.m ---- Computes electrical conductance, thermal conductance, thermal capacitance using the defined device dimensions in main.
+
+# Using Custom Material Properties
+- The code is designed to be material-agnostic. Users can incorporate their own material systems and predict steady-state and oscillatory behavior by providing temperature-dependent properties (electrical conductivity, thermal conductivity, and heat capacity).
+- Datasets should be formatted .xlsx files with columns [Temperature (K), Property value (SI units)].
+- Place your data files in the working directory (or the designated Material properties/ folder).
+- In main_NeuronalMaterialsSimulations.m, materials are selected using an integer flag (using “material_select = XX” function.
+- To add a new material: 
+	- Define a new case in the material selection section (bottom) of the main script.
+	- Assign your fitted parameters (see detailed comments in modelfitter.m on how to chose the parameters).
+	- Set the corresponding flag value.
+	Example: 
+		case 35 % VO2 
+		trange = linspace(300, 1000, 5000); % temperature range used for fitting properties
+		name = 'VO2'; % name of material
+		tcondfile = 'VO2TCond.xlsx'; econdfile = 'VO2ECond'; tcapfile = 'VO2Cth'; % name of material property files (include path if not placed in same directory) 
+		emodelopts = [1,0.2,0.9]; tmodelopts = [1, 0.3, 0.8]; tcapmodelopts = [1,0.5,0.7];% model fitting parameters (refer to modelfitter.m for more details)
+    
+# Citation
+If you use this code in your research, please cite the following work:
+F.Jardali, J. L.Chong, Y.Yu, R. S.Williams, S.Kumar, P. J.Shamberger, T. D.Brown, Materials Selection Principles for Designing Electro-Thermal Neurons. Adv. Electron. Mater. 2025, 11, 2400938. https://doi.org/10.1002/aelm.202400938
